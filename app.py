@@ -23,39 +23,22 @@ import os
 from collections import Counter
 
 
-# ============================================================
-# PIVOTGUARD APPLICATION
-# Pivoting & Lateral Movement Detection System
-# ============================================================
-
 app = Flask(__name__)
 
-# Flask session secret key
+# Demo secret key
 app.secret_key = "pivotguard-secret-key-2026"
 
-
-# ============================================================
-# CONFIGURATION
-# ============================================================
-
 UPLOAD_FOLDER = "uploads"
+ALLOWED_EXTENSIONS = {"csv"}
 
-ALLOWED_EXTENSIONS = {
-    "csv"
-}
-
-os.makedirs(
-    UPLOAD_FOLDER,
-    exist_ok=True
-)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-# ============================================================
+# ---------------------------------------------------------
 # SAMPLE NETWORK LOGS
-# ============================================================
+# ---------------------------------------------------------
 
 SAMPLE_LOGS = [
-
     {
         "timestamp": "2026-09-18 09:10:21",
         "source_ip": "192.168.1.10",
@@ -63,7 +46,6 @@ SAMPLE_LOGS = [
         "port": 445,
         "protocol": "TCP"
     },
-
     {
         "timestamp": "2026-09-18 09:11:05",
         "source_ip": "192.168.1.10",
@@ -71,7 +53,6 @@ SAMPLE_LOGS = [
         "port": 445,
         "protocol": "TCP"
     },
-
     {
         "timestamp": "2026-09-18 09:12:18",
         "source_ip": "192.168.1.10",
@@ -79,7 +60,6 @@ SAMPLE_LOGS = [
         "port": 3389,
         "protocol": "TCP"
     },
-
     {
         "timestamp": "2026-09-18 09:13:42",
         "source_ip": "192.168.1.10",
@@ -87,7 +67,6 @@ SAMPLE_LOGS = [
         "port": 22,
         "protocol": "TCP"
     },
-
     {
         "timestamp": "2026-09-18 09:14:30",
         "source_ip": "192.168.1.30",
@@ -95,7 +74,6 @@ SAMPLE_LOGS = [
         "port": 80,
         "protocol": "TCP"
     },
-
     {
         "timestamp": "2026-09-18 09:15:12",
         "source_ip": "192.168.1.31",
@@ -103,53 +81,39 @@ SAMPLE_LOGS = [
         "port": 443,
         "protocol": "TCP"
     }
-
 ]
 
 
-# ============================================================
+# ---------------------------------------------------------
 # REMOTE SERVICES
-# ============================================================
+# ---------------------------------------------------------
 
 REMOTE_SERVICES = {
-
     22: "SSH",
-
     135: "RPC",
-
     139: "NetBIOS",
-
     445: "SMB",
-
     3389: "RDP",
-
     5985: "WinRM",
-
     5986: "WinRM"
-
 }
 
 
-# ============================================================
-# CSV FILE VALIDATION
-# ============================================================
+# ---------------------------------------------------------
+# FILE VALIDATION
+# ---------------------------------------------------------
 
 def allowed_file(filename):
-
     return (
         "." in filename
-        and
-        filename.rsplit(
-            ".",
-            1
-        )[1].lower()
+        and filename.rsplit(".", 1)[1].lower()
         in ALLOWED_EXTENSIONS
     )
 
 
-# ============================================================
-# READ CSV NETWORK LOGS
-# ============================================================
+# ---------------------------------------------------------
+# CSV READER
+# ---------------------------------------------------------
 
 def read_csv_logs(filepath):
 
@@ -162,117 +126,73 @@ def read_csv_logs(filepath):
         newline=""
     ) as csv_file:
 
-        reader = csv.DictReader(
-            csv_file
-        )
+        reader = csv.DictReader(csv_file)
 
         required_columns = {
-
             "timestamp",
-
             "source_ip",
-
             "destination_ip",
-
             "port",
-
             "protocol"
-
         }
 
         actual_columns = set(
             reader.fieldnames or []
         )
 
-        if not required_columns.issubset(
-            actual_columns
-        ):
-
+        if not required_columns.issubset(actual_columns):
             raise ValueError(
                 "CSV must contain: "
-                "timestamp, source_ip, "
-                "destination_ip, port, protocol"
+                "timestamp, source_ip, destination_ip, "
+                "port, protocol"
             )
 
         for row in reader:
 
-            if not row.get(
-                "source_ip"
-            ):
+            if not row.get("source_ip"):
                 continue
 
-            if not row.get(
-                "destination_ip"
-            ):
+            if not row.get("destination_ip"):
                 continue
 
             try:
-
                 port = int(
-                    row.get(
-                        "port",
-                        0
-                    )
+                    row.get("port", 0)
                 )
-
-            except (
-                ValueError,
-                TypeError
-            ):
-
+            except (ValueError, TypeError):
                 port = 0
 
             logs.append({
-
-                "timestamp":
-                    row.get(
-                        "timestamp",
-                        ""
-                    ),
-
-                "source_ip":
-                    row.get(
-                        "source_ip",
-                        ""
-                    ),
-
-                "destination_ip":
-                    row.get(
-                        "destination_ip",
-                        ""
-                    ),
-
-                "port":
-                    port,
-
-                "protocol":
-                    row.get(
-                        "protocol",
-                        "TCP"
-                    )
-
+                "timestamp": row.get(
+                    "timestamp",
+                    ""
+                ),
+                "source_ip": row.get(
+                    "source_ip",
+                    ""
+                ),
+                "destination_ip": row.get(
+                    "destination_ip",
+                    ""
+                ),
+                "port": port,
+                "protocol": row.get(
+                    "protocol",
+                    "TCP"
+                )
             })
 
     return logs
 
 
-# ============================================================
+# ---------------------------------------------------------
 # LOGIN
-# ============================================================
+# ---------------------------------------------------------
 
-@app.route(
-    "/login",
-    methods=[
-        "GET",
-        "POST"
-    ]
-)
+@app.route("/login", methods=["GET", "POST"])
 def login():
 
-    if session.get(
-        "logged_in"
-    ):
-
+    if session.get("logged_in"):
         return redirect(
             url_for("home")
         )
@@ -296,21 +216,14 @@ def login():
             password
         ):
 
-            session[
-                "logged_in"
-            ] = True
-
-            session[
-                "username"
-            ] = username
+            session["logged_in"] = True
+            session["username"] = username
 
             return redirect(
                 url_for("home")
             )
 
-        error = (
-            "Invalid username or password."
-        )
+        error = "Invalid username or password."
 
     return render_template(
         "login.html",
@@ -318,13 +231,11 @@ def login():
     )
 
 
-# ============================================================
+# ---------------------------------------------------------
 # LOGOUT
-# ============================================================
+# ---------------------------------------------------------
 
-@app.route(
-    "/logout"
-)
+@app.route("/logout")
 def logout():
 
     session.clear()
@@ -334,9 +245,9 @@ def logout():
     )
 
 
-# ============================================================
+# ---------------------------------------------------------
 # MAIN DASHBOARD
-# ============================================================
+# ---------------------------------------------------------
 
 @app.route("/")
 @login_required
@@ -363,19 +274,10 @@ def home():
     )
 
     stats = {
-
-        "total_events":
-            len(events),
-
-        "high":
-            high,
-
-        "medium":
-            medium,
-
-        "low":
-            low
-
+        "total_events": len(events),
+        "high": high,
+        "medium": medium,
+        "low": low
     }
 
     return render_template(
@@ -385,13 +287,11 @@ def home():
     )
 
 
-# ============================================================
-# LIVE MONITORING PAGE
-# ============================================================
+# ---------------------------------------------------------
+# MONITORING PAGE
+# ---------------------------------------------------------
 
-@app.route(
-    "/monitoring"
-)
+@app.route("/monitoring")
 @login_required
 def monitoring():
 
@@ -400,13 +300,11 @@ def monitoring():
     )
 
 
-# ============================================================
+# ---------------------------------------------------------
 # SECURITY SCAN
-# ============================================================
+# ---------------------------------------------------------
 
-@app.route(
-    "/api/scan"
-)
+@app.route("/api/scan")
 @login_required
 def scan():
 
@@ -415,31 +313,19 @@ def scan():
     )
 
     for alert in alerts:
-
-        add_event(
-            alert
-        )
+        add_event(alert)
 
     return jsonify({
-
-        "status":
-            "success",
-
-        "message":
-            "Security analysis completed",
-
-        "total_logs":
-            len(SAMPLE_LOGS),
-
-        "alerts":
-            alerts
-
+        "status": "success",
+        "message": "Security analysis completed",
+        "total_logs": len(SAMPLE_LOGS),
+        "alerts": alerts
     })
 
 
-# ============================================================
-# CSV UPLOAD AND ANALYSIS
-# ============================================================
+# ---------------------------------------------------------
+# CSV UPLOAD
+# ---------------------------------------------------------
 
 @app.route(
     "/api/upload",
@@ -451,29 +337,17 @@ def upload_csv():
     if "file" not in request.files:
 
         return jsonify({
-
-            "status":
-                "error",
-
-            "message":
-                "No CSV file selected"
-
+            "status": "error",
+            "message": "No CSV file selected"
         }), 400
 
-    file = request.files[
-        "file"
-    ]
+    file = request.files["file"]
 
     if file.filename == "":
 
         return jsonify({
-
-            "status":
-                "error",
-
-            "message":
-                "No CSV file selected"
-
+            "status": "error",
+            "message": "No CSV file selected"
         }), 400
 
     if not allowed_file(
@@ -481,13 +355,8 @@ def upload_csv():
     ):
 
         return jsonify({
-
-            "status":
-                "error",
-
-            "message":
-                "Only CSV files are allowed"
-
+            "status": "error",
+            "message": "Only CSV files are allowed"
         }), 400
 
     filename = os.path.basename(
@@ -501,12 +370,8 @@ def upload_csv():
 
     try:
 
-        # Save uploaded CSV
-        file.save(
-            filepath
-        )
+        file.save(filepath)
 
-        # Read logs
         logs = read_csv_logs(
             filepath
         )
@@ -514,69 +379,39 @@ def upload_csv():
         if not logs:
 
             return jsonify({
-
-                "status":
-                    "error",
-
-                "message":
-                    "CSV contains no valid network logs"
-
+                "status": "error",
+                "message": "CSV contains no valid network logs"
             }), 400
 
-        # Run detection engine
         alerts = detect_lateral_movement(
             logs
         )
 
-        # Save alerts
         for alert in alerts:
-
-            add_event(
-                alert
-            )
+            add_event(alert)
 
         return jsonify({
-
-            "status":
-                "success",
-
-            "message":
-                "CSV analysis completed",
-
-            "filename":
-                filename,
-
-            "total_logs":
-                len(logs),
-
-            "total_alerts":
-                len(alerts),
-
-            "alerts":
-                alerts
-
+            "status": "success",
+            "message": "CSV analysis completed",
+            "filename": filename,
+            "total_logs": len(logs),
+            "total_alerts": len(alerts),
+            "alerts": alerts
         })
 
     except Exception as error:
 
         return jsonify({
-
-            "status":
-                "error",
-
-            "message":
-                str(error)
-
+            "status": "error",
+            "message": str(error)
         }), 500
 
 
-# ============================================================
-# GET ALL SECURITY EVENTS
-# ============================================================
+# ---------------------------------------------------------
+# GET ALL EVENTS
+# ---------------------------------------------------------
 
-@app.route(
-    "/api/events"
-)
+@app.route("/api/events")
 @login_required
 def events():
 
@@ -585,9 +420,9 @@ def events():
     )
 
 
-# ============================================================
+# ---------------------------------------------------------
 # UPDATE ALERT STATUS
-# ============================================================
+# ---------------------------------------------------------
 
 @app.route(
     "/api/events/<int:event_id>/status",
@@ -608,27 +443,17 @@ def update_alert_status(
     )
 
     allowed_statuses = {
-
         "New",
-
         "Acknowledged",
-
         "Investigating",
-
         "Resolved"
-
     }
 
     if status not in allowed_statuses:
 
         return jsonify({
-
-            "status":
-                "error",
-
-            "message":
-                "Invalid alert status"
-
+            "status": "error",
+            "message": "Invalid alert status"
         }), 400
 
     updated = update_event_status(
@@ -639,39 +464,23 @@ def update_alert_status(
     if not updated:
 
         return jsonify({
-
-            "status":
-                "error",
-
-            "message":
-                "Alert not found"
-
+            "status": "error",
+            "message": "Alert not found"
         }), 404
 
     return jsonify({
-
-        "status":
-            "success",
-
-        "message":
-            "Alert status updated",
-
-        "event_id":
-            event_id,
-
-        "new_status":
-            status
-
+        "status": "success",
+        "message": "Alert status updated",
+        "event_id": event_id,
+        "new_status": status
     })
 
 
-# ============================================================
-# DASHBOARD STATISTICS
-# ============================================================
+# ---------------------------------------------------------
+# STATISTICS API
+# ---------------------------------------------------------
 
-@app.route(
-    "/api/stats"
-)
+@app.route("/api/stats")
 @login_required
 def stats():
 
@@ -730,111 +539,78 @@ def stats():
 
     return jsonify({
 
-        "total_events":
-            len(events),
+        "total_events": len(events),
 
-        "high":
-            high,
+        "high": high,
 
-        "medium":
-            medium,
+        "medium": medium,
 
-        "low":
-            low,
+        "low": low,
 
-        "new":
-            new,
+        "new": new,
 
-        "acknowledged":
-            acknowledged,
+        "acknowledged": acknowledged,
 
-        "investigating":
-            investigating,
+        "investigating": investigating,
 
-        "resolved":
-            resolved
-
+        "resolved": resolved
     })
 
 
-# ============================================================
-# SECURITY ANALYTICS
-# ============================================================
+# ---------------------------------------------------------
+# ANALYTICS API
+# ---------------------------------------------------------
 
-@app.route(
-    "/api/analytics"
-)
+@app.route("/api/analytics")
 @login_required
 def analytics():
 
     events = get_events()
 
-    # Severity statistics
     severity_counts = Counter(
-
         event.get(
             "severity",
             "Unknown"
         )
-
         for event in events
-
     )
 
-    # Status statistics
     status_counts = Counter(
-
         event.get(
             "status",
             "New"
         )
-
         for event in events
-
     )
 
-    # Source IP statistics
     source_counts = Counter(
-
         event.get(
             "source_ip",
             "Unknown"
         )
-
         for event in events
-
     )
 
-    # Destination IP statistics
     destination_counts = Counter(
-
         event.get(
             "destination_ip",
             "Unknown"
         )
-
         for event in events
-
     )
 
-    # Remote services
     service_counts = Counter()
 
     for event in events:
 
         try:
-
             port = int(
                 event.get(
                     "port",
                     0
                 )
             )
-
-        except (
-            ValueError,
-            TypeError
-        ):
+        except (ValueError, TypeError):
 
             port = 0
 
@@ -843,14 +619,11 @@ def analytics():
             "Other"
         )
 
-        service_counts[
-            service
-        ] += 1
+        service_counts[service] += 1
 
     return jsonify({
 
-        "total_events":
-            len(events),
+        "total_events": len(events),
 
         "severity": {
 
@@ -871,7 +644,6 @@ def analytics():
                     "Low",
                     0
                 )
-
         },
 
         "status": {
@@ -899,7 +671,6 @@ def analytics():
                     "Resolved",
                     0
                 )
-
         },
 
         "top_sources": [
@@ -910,10 +681,7 @@ def analytics():
             }
 
             for ip, count
-            in source_counts.most_common(
-                10
-            )
-
+            in source_counts.most_common(10)
         ],
 
         "top_destinations": [
@@ -924,38 +692,27 @@ def analytics():
             }
 
             for ip, count
-            in destination_counts.most_common(
-                10
-            )
-
+            in destination_counts.most_common(10)
         ],
 
         "remote_services": [
 
             {
-                "service":
-                    service,
-
-                "count":
-                    count
-
+                "service": service,
+                "count": count
             }
 
             for service, count
             in service_counts.most_common()
-
         ]
-
     })
 
 
-# ============================================================
+# ---------------------------------------------------------
 # SECURITY REPORT
-# ============================================================
+# ---------------------------------------------------------
 
-@app.route(
-    "/report"
-)
+@app.route("/report")
 @login_required
 def report():
 
@@ -968,77 +725,76 @@ def report():
     return report_html
 
 
-# ============================================================
-# SYSTEM HEALTH
-# ============================================================
+# ---------------------------------------------------------
+# HEALTH CHECK
+# ---------------------------------------------------------
 
-@app.route(
-    "/api/health"
-)
+@app.route("/api/health")
 @login_required
 def health():
 
     return jsonify({
 
-        "status":
-            "online",
+        "status": "online",
 
-        "application":
-            "PivotGuard",
+        "application": "PivotGuard",
 
-        "detection_engine":
-            "active",
+        "detection_engine": "active",
 
-        "database":
-            "SQLite",
+        "database": "SQLite",
 
-        "monitoring":
-            "defensive",
+        "monitoring": "defensive",
 
-        "server":
-            "Flask"
-
+        "server": "Flask"
     })
 
 
-# ============================================================
-# APPLICATION START
-# ============================================================
+# ---------------------------------------------------------
+# DATABASE INITIALIZATION
+# ---------------------------------------------------------
+# IMPORTANT:
+# This runs when Flask/Gunicorn imports app.py.
+# Required for Render deployment.
+
+init_db()
+
+
+# ---------------------------------------------------------
+# LOCAL DEVELOPMENT
+# ---------------------------------------------------------
 
 if __name__ == "__main__":
 
-    # Initialize SQLite database
-    init_db()
-
     print()
+
     print("=" * 60)
+
     print(
         "        PIVOTING & LATERAL MOVEMENT"
     )
+
     print(
         "              DETECTION SYSTEM"
     )
+
     print("=" * 60)
+
     print()
 
     print(
-        "  Login     : "
-        "http://127.0.0.1:5000/login"
+        "  Login     : http://127.0.0.1:5000/login"
     )
 
     print(
-        "  Dashboard : "
-        "http://127.0.0.1:5000"
+        "  Dashboard : http://127.0.0.1:5000"
     )
 
     print(
-        "  Monitoring: "
-        "http://127.0.0.1:5000/monitoring"
+        "  Monitoring: http://127.0.0.1:5000/monitoring"
     )
 
     print(
-        "  Report    : "
-        "http://127.0.0.1:5000/report"
+        "  Report    : http://127.0.0.1:5000/report"
     )
 
     print()
@@ -1054,14 +810,11 @@ if __name__ == "__main__":
     )
 
     print("=" * 60)
+
     print()
 
     app.run(
-
         host="127.0.0.1",
-
         port=5000,
-
         debug=True
-
     )
