@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PivotGuard | Lateral Movement Detection</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header class="topbar">
+        <div>
+            <h1>🛡️ PivotGuard</h1>
+            <p>Pivoting & Lateral Movement Detection System</p>
+        </div>
+
+        <div class="status">
+            <span class="dot"></span>
+            SYSTEM ONLINE
+        </div>
+    </header>
+
+    <main class="container">
+
+        <section class="hero">
+            <div>
+                <h2>Security Operations Dashboard</h2>
+                <p>
+                    Monitor suspicious internal network activity
+                    and detect possible lateral movement behavior.
+                </p>
+            </div>
+
+            <button onclick="runScan()" id="scanButton">
+                🔍 Run Security Scan
+            </button>
+        </section>
+
+        <section class="stats">
+
+            <div class="card">
+                <h3>Total Events</h3>
+                <div class="number" id="totalEvents">0</div>
+            </div>
+
+            <div class="card high">
+                <h3>High Risk</h3>
+                <div class="number" id="highEvents">0</div>
+            </div>
+
+            <div class="card medium">
+                <h3>Medium Risk</h3>
+                <div class="number" id="mediumEvents">0</div>
+            </div>
+
+            <div class="card low">
+                <h3>Low Risk</h3>
+                <div class="number" id="lowEvents">0</div>
+            </div>
+
+        </section>
+
+        <section class="panel">
+
+            <div class="panel-header">
+                <div>
+                    <h2>🚨 Detected Security Events</h2>
+                    <p>Suspicious network activity identified by the detection engine.</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Source IP</th>
+                            <th>Destination IP</th>
+                            <th>Port</th>
+                            <th>Protocol</th>
+                            <th>Severity</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="eventsTable">
+                        <tr>
+                            <td colspan="7" class="empty">
+                                No security events loaded.
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>PivotGuard Security Analytics • Defensive Cybersecurity Project</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>

@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        PivotGuard | Live Monitoring
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}?v=6"
+    >
+
+    <style>
+        /* =====================================================
+           MONITORING PAGE SPECIFIC UI
+           ===================================================== */
+
+        .monitoring-hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+
+            padding: 25px;
+
+            margin-bottom: 20px;
+
+            border-radius: 16px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(20, 43, 48, 0.96),
+                    rgba(9, 25, 30, 0.96)
+                );
+
+            border:
+                1px solid
+                rgba(105, 245, 197, 0.13);
+
+            box-shadow:
+                0 15px 45px
+                rgba(0, 0, 0, 0.18);
+        }
+
+        .monitoring-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .monitoring-icon {
+            width: 54px;
+            height: 54px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 14px;
+
+            font-size: 26px;
+
+            background:
+                rgba(67, 239, 182, 0.07);
+
+            border:
+                1px solid
+                rgba(67, 239, 182, 0.15);
+        }
+
+        .monitoring-title h2 {
+            font-size: 24px;
+            font-weight: 750;
+        }
+
+        .monitoring-title p {
+            margin-top: 4px;
+
+            color: #789097;
+
+            font-size: 12px;
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 9px 13px;
+
+            border-radius: 999px;
+
+            color: #72f0be;
+
+            background:
+                rgba(70, 239, 180, 0.07);
+
+            border:
+                1px solid
+                rgba(70, 239, 180, 0.15);
+
+            font-size: 10px;
+
+            font-weight: 750;
+
+            letter-spacing: 0.7px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #59e8b4;
+
+            box-shadow:
+                0 0 12px
+                rgba(89, 232, 180, 0.8);
+
+            animation:
+                monitorPulse 1.5s infinite;
+        }
+
+        @keyframes monitorPulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.35;
+                transform: scale(0.75);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .monitor-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .monitor-btn {
+            padding: 9px 13px;
+
+            border-radius: 8px;
+
+            color: #a9bdc2;
+
+            background:
+                rgba(255, 255, 255, 0.04);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.08);
+
+            font-size: 11px;
+
+            font-weight: 650;
+
+            cursor: pointer;
+
+            transition: 0.2s ease;
+        }
+
+        .monitor-btn:hover {
+            color: #e5f4f6;
+
+            background:
+                rgba(255, 255, 255, 0.07);
+
+            transform: translateY(-1px);
+        }
+
+        .monitor-btn.primary {
+            color: #06120e;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #69f4c5,
+                    #3bdba7
+                );
+
+            border: none;
+        }
+
+
+        /* =====================================================
+           MONITORING STATISTICS
+           ===================================================== */
+
+        .monitor-stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    4,
+                    minmax(0, 1fr)
+                );
+
+            gap: 14px;
+
+            margin-bottom: 20px;
+        }
+
+        .monitor-stat {
+            position: relative;
+
+            overflow: hidden;
+
+            padding: 19px;
+
+            border-radius: 13px;
+
+            background:
+                rgba(13, 29, 34, 0.94);
+
+            border:
+                1px solid
+                rgba(139, 192, 202, 0.09);
+        }
+
+        .monitor-stat::before {
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+            top: 0;
+
+            width: 3px;
+            height: 100%;
+
+            background: #5fe8b6;
+
+            opacity: 0.7;
+        }
+
+        .monitor-stat.high::before {
+            background: #ff7079;
+        }
+
+        .monitor-stat.investigating::before {
+            background: #f5c75e;
+        }
+
+        .monitor-stat.resolved::before {
+            background: #68dca9;
+        }
+
+        .monitor-stat span {
+            display: block;
+
+            color: #71878e;
+
+            font-size: 10px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.6px;
+        }
+
+        .monitor-stat strong {
+            display: block;
+
+            margin-top: 7px;
+
+            color: #edf8f9;
+
+            font-size: 29px;
+
+            font-weight: 800;
+        }
+
+        .monitor-stat small {
+            display: block;
+
+            margin-top: 3px;
+
+            color: #5f747b;
+
+            font-size: 10px;
+        }
+
+        .monitor-stat.high strong {
+            color: #ff858d;
+        }
+
+        .monitor-stat.investigating strong {
+            color: #ffd273;
+        }
+
+        .monitor-stat.resolved strong {
+            color: #72dfb1;
+        }
+
+
+        /* =====================================================
+           SYSTEM STATUS
+           ===================================================== */
+
+        .status-online {
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            color: #70e8b7;
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }
+
+        .status-online::before {
+            content: "";
+
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #5be4af;
+
+            box-shadow:
+                0 0 9px
+                rgba(91, 228, 175, 0.7);
+        }
+
+
+        /* =====================================================
+           ALERT HEADER
+           ===================================================== */
+
+        .alert-count {
+            padding:
+                5px 9px;
+
+            border-radius: 999px;
+
+            color: #8eecc4;
+
+            background:
+                rgba(73, 232, 177, 0.07);
+
+            border:
+                1px solid
+                rgba(73, 232, 177, 0.12);
+
+            font-size: 9px;
+
+            font-weight: 750;
+        }
+
+
+        /* =====================================================
+           ALERT LIST
+           ===================================================== */
+
+        .monitor-alert-list {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 9px;
+        }
+
+        .monitor-alert {
+            padding: 15px;
+
+            border-radius: 10px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.025
+                );
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.055
+                );
+
+            transition:
+                0.2s ease;
+        }
+
+        .monitor-alert:hover {
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.04
+                );
+
+            border-color:
+                rgba(
+                    255,
+                    105,
+                    114,
+                    0.18
+                );
+        }
+
+        .monitor-alert-top {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 12px;
+        }
+
+        .monitor-route {
+            color: #d8e8eb;
+
+            font-size: 12px;
+
+            font-weight: 700;
+        }
+
+        .monitor-route span {
+            color: #687e85;
+
+            margin: 0 5px;
+        }
+
+        .monitor-alert-info {
+            margin-top: 7px;
+
+            color: #72878e;
+
+            font-size: 10px;
+        }
+
+        .monitor-alert-reason {
+            margin-top: 8px;
+
+            color: #99abb0;
+
+            font-size: 10px;
+
+            line-height: 1.55;
+        }
+
+        .monitor-alert-status {
+            margin-top: 8px;
+
+            color: #70ddb1;
+
+            font-size: 10px;
+        }
+
+
+        /* =====================================================
+           NETWORK TABLE
+           ===================================================== */
+
+        .network-table-container {
+            overflow-x: auto;
+        }
+
+        .monitor-table {
+            width: 100%;
+
+            min-width: 760px;
+
+            border-collapse: collapse;
+        }
+
+        .monitor-table th {
+            padding:
+                12px 13px;
+
+            text-align: left;
+
+            color: #687e85;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.02
+                );
+
+            border-bottom:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.06
+                );
+
+            font-size: 9px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.6px;
+        }
+
+        .monitor-table td {
+            padding:
+                12px 13px;
+
+            color: #9fb2b7;
+
+            border-bottom:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.045
+                );
+
+            font-size: 10px;
+        }
+
+        .monitor-table tbody tr {
+            transition:
+                background 0.2s ease;
+        }
+
+        .monitor-table tbody tr:hover {
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.025
+                );
+        }
+
+        .ip-address {
+            color: #b8cbd0;
+
+            font-family:
+                Consolas,
+                monospace;
+
+            font-size: 10px;
+        }
+
+        .port-number {
+            color: #82e8bf;
+
+            font-family:
+                Consolas,
+                monospace;
+
+            font-weight: 700;
+        }
+
+        .risk-high {
+            display: inline-flex;
+
+            padding:
+                4px 8px;
+
+            border-radius: 999px;
+
+            color: #ff9ba1;
+
+            background:
+                rgba(
+                    255,
+                    76,
+                    86,
+                    0.09
+                );
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    76,
+                    86,
+                    0.13
+                );
+
+            font-size: 8px;
+
+            font-weight: 800;
+
+            text-transform: uppercase;
+        }
+
+
+        /* =====================================================
+           EMPTY STATE
+           ===================================================== */
+
+        .monitor-empty {
+            padding: 35px;
+
+            text-align: center;
+
+            color: #62777e;
+
+            font-size: 11px;
+        }
+
+
+        /* =====================================================
+           FOOTER
+           ===================================================== */
+
+        .monitor-footer {
+            margin-top: 25px;
+
+            padding: 18px;
+
+            text-align: center;
+
+            color: #50666d;
+
+            border-top:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.05
+                );
+
+            font-size: 10px;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+        @media (max-width: 900px) {
+
+            .monitor-stats {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
+            .monitoring-hero {
+                align-items: flex-start;
+
+                flex-direction: column;
+            }
+
+            .monitor-actions {
+                width: 100%;
+            }
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            .monitor-stats {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .monitoring-hero {
+                padding: 18px;
+            }
+
+            .monitoring-title h2 {
+                font-size: 20px;
+            }
+
+            .monitor-actions {
+                flex-wrap: wrap;
+            }
+
+            .monitor-btn {
+                flex: 1;
+            }
+
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <header>
+
+        <div class="header-inner">
+
+            <a
+                href="{{ url_for('home') }}"
+                class="brand"
+            >
+
+                <div class="brand-icon">
+                    🛡️
+                </div>
+
+                <div class="brand-text">
+
+                    <h1>
+                        PivotGuard
+                    </h1>
+
+                    <p>
+                        Pivoting &amp; Lateral Movement Detection System
+                    </p>
+
+                </div>
+
+            </a>
+
+
+            <nav>
+
+                <a
+                    href="{{ url_for('home') }}"
+                >
+                    Dashboard
+                </a>
+
+                <a
+                    href="{{ url_for('monitoring') }}"
+                    class="active"
+                >
+                    Monitoring
+                </a>
+
+                <a
+                    href="{{ url_for('report') }}"
+                >
+                    Report
+                </a>
+
+                <a
+                    href="{{ url_for('logout') }}"
+                >
+                    Logout
+                </a>
+
+            </nav>
+
+
+            <div class="monitoring-status">
+
+                <span class="monitoring-dot"></span>
+
+                MONITORING ACTIVE
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+         ===================================================== -->
+
+    <main>
+
+        <div class="container">
+
+
+            <!-- =================================================
+                 MONITORING HERO
+                 ================================================= -->
+
+            <section class="monitoring-hero">
+
+                <div class="monitoring-title">
+
+                    <div class="monitoring-icon">
+                        🛡️
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            Live Security Monitoring
+                        </h2>
+
+                        <p>
+                            Real-time defensive monitoring and network security visibility
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="monitor-actions">
+
+                    <button
+                        class="monitor-btn primary"
+                        onclick="refreshMonitoring()"
+                    >
+                        ↻ Refresh
+                    </button>
+
+                    <a
+                        class="monitor-btn"
+                        href="{{ url_for('home') }}"
+                    >
+                        ← Dashboard
+                    </a>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 STATISTICS
+                 ================================================= -->
+
+            <section class="monitor-stats">
+
+                <div class="monitor-stat">
+
+                    <span>
+                        Security Events
+                    </span>
+
+                    <strong id="monitorTotal">
+                        0
+                    </strong>
+
+                    <small>
+                        Total detected events
+                    </small>
+
+                </div>
+
+
+                <div class="monitor-stat high">
+
+                    <span>
+                        High Risk
+                    </span>
+
+                    <strong id="monitorHigh">
+                        0
+                    </strong>
+
+                    <small>
+                        Immediate investigation
+                    </small>
+
+                </div>
+
+
+                <div class="monitor-stat investigating">
+
+                    <span>
+                        Investigating
+                    </span>
+
+                    <strong id="monitorInvestigating">
+                        0
+                    </strong>
+
+                    <small>
+                        Active investigations
+                    </small>
+
+                </div>
+
+
+                <div class="monitor-stat resolved">
+
+                    <span>
+                        Resolved
+                    </span>
+
+                    <strong id="monitorResolved">
+                        0
+                    </strong>
+
+                    <small>
+                        Closed security events
+                    </small>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 SYSTEM STATUS
+                 ================================================= -->
+
+            <section class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h3>
+                            System Status
+                        </h3>
+
+                        <p>
+                            PivotGuard service health
+                        </p>
+
+                    </div>
+
+                    <span class="status-online">
+                        Online
+                    </span>
+
+                </div>
+
+
+                <div class="panel-body">
+
+                    <div class="system-status">
+
+                        <div class="system-item">
+
+                            <span>
+                                Detection Engine
+                            </span>
+
+                            <strong>
+                                ACTIVE
+                            </strong>
+
+                        </div>
+
+
+                        <div class="system-item">
+
+                            <span>
+                                Database
+                            </span>
+
+                            <strong>
+                                SQLite ONLINE
+                            </strong>
+
+                        </div>
+
+
+                        <div class="system-item">
+
+                            <span>
+                                Flask Server
+                            </span>
+
+                            <strong>
+                                RUNNING
+                            </strong>
+
+                        </div>
+
+
+                        <div class="system-item">
+
+                            <span>
+                                Log Analysis
+                            </span>
+
+                            <strong>
+                                ENABLED
+                            </strong>
+
+                        </div>
+
+
+                        <div class="system-item">
+
+                            <span>
+                                Monitoring Mode
+                            </span>
+
+                            <strong>
+                                DEFENSIVE
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <div style="height: 18px;"></div>
+
+
+
+            <!-- =================================================
+                 RECENT ALERTS
+                 ================================================= -->
+
+            <section class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h3>
+                            Recent Security Alerts
+                        </h3>
+
+                        <p>
+                            Latest detected network security events
+                        </p>
+
+                    </div>
+
+                    <span
+                        class="alert-count"
+                        id="alertCount"
+                    >
+                        0 alerts
+                    </span>
+
+                </div>
+
+
+                <div class="panel-body">
+
+                    <div
+                        class="monitor-alert-list"
+                        id="monitorAlertList"
+                    >
+
+                        <div class="monitor-empty">
+                            Loading security alerts...
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <div style="height: 18px;"></div>
+
+
+
+            <!-- =================================================
+                 NETWORK CONNECTIONS
+                 ================================================= -->
+
+            <section class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h3>
+                            Network Connections
+                        </h3>
+
+                        <p>
+                            Detected communication activity
+                        </p>
+
+                    </div>
+
+                    <span
+                        class="alert-count"
+                        id="connectionCount"
+                    >
+                        0 connections
+                    </span>
+
+                </div>
+
+
+                <div class="network-table-container">
+
+                    <table class="monitor-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Time
+                                </th>
+
+                                <th>
+                                    Source
+                                </th>
+
+                                <th>
+                                    Destination
+                                </th>
+
+                                <th>
+                                    Port
+                                </th>
+
+                                <th>
+                                    Protocol
+                                </th>
+
+                                <th>
+                                    Risk
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody
+                            id="monitorTableBody"
+                        >
+
+                            <tr>
+
+                                <td
+                                    colspan="6"
+                                    class="monitor-empty"
+                                >
+                                    Loading network activity...
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 FOOTER
+                 ================================================= -->
+
+            <div class="monitor-footer">
+
+                PivotGuard • Defensive Cybersecurity Monitoring System
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+
+
+    <!-- =====================================================
+         MONITORING JAVASCRIPT
+         ===================================================== -->
+
+    <script>
+
+        "use strict";
+
+
+        /* =====================================================
+           HTML ESCAPE
+           ===================================================== */
+
+        function escapeMonitorHtml(value) {
+
+            return String(value ?? "")
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
+
+        /* =====================================================
+           LOAD STATISTICS
+           ===================================================== */
+
+        async function loadMonitoringStats() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/stats",
+                        {
+                            cache: "no-store"
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Statistics request failed"
+                    );
+
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                document.getElementById(
+                    "monitorTotal"
+                ).textContent =
+                    data.total_events || 0;
+
+
+                document.getElementById(
+                    "monitorHigh"
+                ).textContent =
+                    data.high || 0;
+
+
+                document.getElementById(
+                    "monitorInvestigating"
+                ).textContent =
+                    data.investigating || 0;
+
+
+                document.getElementById(
+                    "monitorResolved"
+                ).textContent =
+                    data.resolved || 0;
+
+
+            } catch (error) {
+
+                console.error(
+                    "Monitoring statistics error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        /* =====================================================
+           LOAD EVENTS
+           ===================================================== */
+
+        async function loadMonitoringEvents() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/events",
+                        {
+                            cache: "no-store"
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Events request failed"
+                    );
+
+                }
+
+
+                const events =
+                    await response.json();
+
+
+                renderMonitoringAlerts(
+                    events
+                );
+
+
+                renderMonitoringTable(
+                    events
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Monitoring events error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        /* =====================================================
+           RECENT ALERTS
+           ===================================================== */
+
+        function renderMonitoringAlerts(
+            events
+        ) {
+
+            const container =
+                document.getElementById(
+                    "monitorAlertList"
+                );
+
+
+            const countElement =
+                document.getElementById(
+                    "alertCount"
+                );
+
+
+            if (!Array.isArray(events)) {
+
+                container.innerHTML =
+                    `<div class="monitor-empty">
+                        Unable to load alerts.
+                    </div>`;
+
+                return;
+
+            }
+
+
+            countElement.textContent =
+                `${events.length} alerts`;
+
+
+            if (!events.length) {
+
+                container.innerHTML =
+                    `<div class="monitor-empty">
+                        No security alerts detected.
+                    </div>`;
+
+                return;
+
+            }
+
+
+            const recent =
+                events.slice(
+                    0,
+                    5
+                );
+
+
+            container.innerHTML =
+                recent.map(
+                    event => {
+
+                        return `
+
+                            <div class="monitor-alert">
+
+                                <div class="monitor-alert-top">
+
+                                    <div class="monitor-route">
+
+                                        ${escapeMonitorHtml(
+                                            event.source_ip || "-"
+                                        )}
+
+                                        <span>→</span>
+
+                                        ${escapeMonitorHtml(
+                                            event.destination_ip || "-"
+                                        )}
+
+                                    </div>
+
+
+                                    <span class="severity high">
+
+                                        ${escapeMonitorHtml(
+                                            event.severity || "High"
+                                        )}
+
+                                    </span>
+
+                                </div>
+
+
+                                <div class="monitor-alert-info">
+
+                                    Port:
+                                    ${escapeMonitorHtml(
+                                        event.port || "-"
+                                    )}
+
+                                    •
+                                    ${escapeMonitorHtml(
+                                        event.protocol || "TCP"
+                                    )}
+
+                                </div>
+
+
+                                <div class="monitor-alert-reason">
+
+                                    ${escapeMonitorHtml(
+                                        event.reason ||
+                                        "Security event detected"
+                                    )}
+
+                                </div>
+
+
+                                <div class="monitor-alert-status">
+
+                                    Status:
+                                    ${escapeMonitorHtml(
+                                        event.status || "New"
+                                    )}
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }
+                ).join("");
+
+        }
+
+
+        /* =====================================================
+           NETWORK TABLE
+           ===================================================== */
+
+        function renderMonitoringTable(
+            events
+        ) {
+
+            const tableBody =
+                document.getElementById(
+                    "monitorTableBody"
+                );
+
+
+            const countElement =
+                document.getElementById(
+                    "connectionCount"
+                );
+
+
+            countElement.textContent =
+                `${events.length} connections`;
+
+
+            if (!events.length) {
+
+                tableBody.innerHTML =
+                    `
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="monitor-empty"
+                        >
+                            No network connections detected.
+                        </td>
+
+                    </tr>
+                    `;
+
+                return;
+
+            }
+
+
+            tableBody.innerHTML =
+                events.map(
+                    event => {
+
+                        return `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeMonitorHtml(
+                                        event.timestamp || "-"
+                                    )}
+                                </td>
+
+
+                                <td>
+
+                                    <span class="ip-address">
+                                        ${escapeMonitorHtml(
+                                            event.source_ip || "-"
+                                        )}
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+
+                                    <span class="ip-address">
+                                        ${escapeMonitorHtml(
+                                            event.destination_ip || "-"
+                                        )}
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+
+                                    <span class="port-number">
+                                        ${escapeMonitorHtml(
+                                            event.port || "-"
+                                        )}
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+                                    ${escapeMonitorHtml(
+                                        event.protocol || "-"
+                                    )}
+                                </td>
+
+
+                                <td>
+
+                                    <span class="risk-high">
+                                        ${escapeMonitorHtml(
+                                            event.severity || "High"
+                                        )}
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                        `;
+
+                    }
+                ).join("");
+
+        }
+
+
+        /* =====================================================
+           REFRESH
+           ===================================================== */
+
+        async function refreshMonitoring() {
+
+            await loadMonitoringStats();
+
+            await loadMonitoringEvents();
+
+        }
+
+
+        /* =====================================================
+           INITIAL LOAD
+           ===================================================== */
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                refreshMonitoring();
+
+
+                /*
+                 * Refresh every 10 seconds.
+                 * This provides live defensive
+                 * monitoring without reloading
+                 * the entire page.
+                 */
+
+                setInterval(
+                    refreshMonitoring,
+                    10000
+                );
+
+            }
+        );
+
+    </script>
+
+</body>
+</html>
